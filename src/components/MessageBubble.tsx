@@ -9,9 +9,10 @@ import { ImageIcon } from 'lucide-react';
 interface MessageBubbleProps {
   message: Message;
   characterAvatar?: string;
+  speaker?: string;
 }
 
-export default function MessageBubble({ message, characterAvatar }: MessageBubbleProps) {
+export default function MessageBubble({ message, characterAvatar, speaker }: MessageBubbleProps) {
   const [showImageViewer, setShowImageViewer] = useState(false);
 
   if (message.role === 'user') {
@@ -69,7 +70,7 @@ export default function MessageBubble({ message, characterAvatar }: MessageBubbl
           <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{message.content}</p>
         </div>
         <div className="bg-white rounded-2xl rounded-bl-none px-4 py-2 shadow-sm">
-          <VoicePlayer audioUri={message.audioUri} text={message.content} />
+          <VoicePlayer audioUri={message.audioUri} text={message.content} speaker={speaker} />
         </div>
       </div>
     </div>

@@ -66,6 +66,7 @@ export default function ChatScreen() {
             key={message.id}
             message={message}
             characterAvatar={character.avatar}
+            speaker={character.speaker}
           />
         ))}
         <TypingIndicator />

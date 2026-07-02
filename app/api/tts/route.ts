@@ -20,45 +20,18 @@ const VOLC_VOICES: Record<string, string> = {
 
 async function fetchEdgeTTS(text: string, speaker: string): Promise<string> {
   const voice = EDGE_VOICES[speaker] || 'zh-CN-YunxiNeural';
-  const response = await fetch('https://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1', {
+  
+  const response = await fetch('https://edge.microsoft.com/tts', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0',
-      'Accept': '*/*',
-      'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
-      'Sec-CH-UA': '"Not_A Brand";v="8", "Chromium";v="120", "Microsoft Edge";v="120"',
-      'Sec-CH-UA-Mobile': '?0',
-      'Sec-CH-UA-Platform': '"Windows"',
-      'Sec-Fetch-Dest': 'audio',
-      'Sec-Fetch-Mode': 'cors',
-      'Sec-Fetch-Site': 'cross-site',
     },
     body: JSON.stringify({
-      context: {
-        synthesis: {
-          audio: {
-            metadataoptions: {
-              sentenceBoundaryEnabled: true,
-              wordBoundaryEnabled: true,
-            },
-            outputFormat: 'audio-16khz-32kbitrate-mono-mp3',
-            properties: {
-              PropertyIdEnum_SpeechServiceConnection_EndSilenceTimeoutMs: 2000,
-            },
-          },
-          language: {
-            autoDetection: false,
-            languageTag: 'zh-CN',
-          },
-          voice: {
-            name: voice,
-          },
-        },
-      },
-      input: {
-        text,
-      },
+      text,
+      voiceName: voice,
+      language: 'zh-CN',
+      outputFormat: 'audio-16khz-32kbitrate-mono-mp3',
     }),
     signal: AbortSignal.timeout(15000),
   });
@@ -89,9 +62,7 @@ async function fetchVolcTTS(text: string, speaker: string): Promise<string> {
       'X-Api-App-Id': appId,
       'X-Api-Access-Key': accessKey,
     },
-    body: JSON.stringify({
-      text,
-    }),
+    body: JSON.stringify({ text }),
     signal: AbortSignal.timeout(15000),
   });
 
@@ -153,16 +124,7 @@ export async function POST(request: NextRequest) {
         audioUri = await fetchAzureTTS(text, speaker);
       } catch (azureError) {
         console.warn('Azure TTS failed:', azureError);
-        if (useVolc) {
-          try {
-            audioUri = await fetchVolcTTS(text, speaker);
-          } catch (volcError) {
-            console.warn('Volc TTS failed:', volcError);
-            audioUri = await fetchEdgeTTS(text, speaker);
-          }
-        } else {
-          audioUri = await fetchEdgeTTS(text, speaker);
-        }
+        audioUri = await fetchEdgeTTS(text, speaker);
       }
     } else if (useVolc) {
       try {
@@ -181,6 +143,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('TTS error:', error);
-    return NextResponse.json({ audioUri: '', audioSize: 0 });
+    return NextResponse.json({ audioUri: '', audioSize: 0, error: (error as Error).message });
   }
 }
