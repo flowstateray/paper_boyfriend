@@ -4,22 +4,26 @@ import { useState, useRef, useEffect } from 'react';
 import { Play, Pause } from 'lucide-react';
 
 interface VoicePlayerProps {
-  audioUri: string;
-  duration?: number;
+  audioUri?: string;
+  text?: string;
 }
 
-export default function VoicePlayer({ audioUri }: VoicePlayerProps) {
+export default function VoicePlayer({ audioUri, text }: VoicePlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const timerRef = useRef<number | null>(null);
 
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
     const updateProgress = () => {
-      setProgress((audio.currentTime / audio.duration) * 100);
+      if (audio.duration > 0) {
+        setProgress((audio.currentTime / audio.duration) * 100);
+      }
     };
 
     const updateDuration = () => {
@@ -40,18 +44,70 @@ export default function VoicePlayer({ audioUri }: VoicePlayerProps) {
       audio.removeEventListener('loadedmetadata', updateDuration);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, []);
+  }, [audioUri]);
 
   const togglePlay = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    if (audioUri) {
+      const audio = audioRef.current;
+      if (!audio) return;
 
-    if (isPlaying) {
-      audio.pause();
-    } else {
-      audio.play();
+      if (isPlaying) {
+        audio.pause();
+      } else {
+        audio.play();
+      }
+      setIsPlaying(!isPlaying);
+    } else if (text && 'speechSynthesis' in window) {
+      if (isPlaying) {
+        window.speechSynthesis.cancel();
+        setIsPlaying(false);
+        setProgress(0);
+        if (timerRef.current) {
+          clearInterval(timerRef.current);
+        }
+      } else {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'zh-CN';
+        utterance.rate = 0.9;
+        utterance.pitch = 1;
+
+        const voices = window.speechSynthesis.getVoices();
+        const targetVoice = voices.find(v => v.name.includes('Yunxi') || v.lang === 'zh-CN');
+        if (targetVoice) {
+          utterance.voice = targetVoice;
+        }
+
+        utterance.onstart = () => {
+          setIsPlaying(true);
+          setDuration(text.length * 0.15);
+          timerRef.current = window.setInterval(() => {
+            setProgress(prev => {
+              if (prev >= 100) {
+                if (timerRef.current) clearInterval(timerRef.current);
+                return 100;
+              }
+              return prev + (100 / (duration || 1));
+            });
+          }, 100);
+        };
+
+        utterance.onend = () => {
+          setIsPlaying(false);
+          setProgress(0);
+          if (timerRef.current) clearInterval(timerRef.current);
+        };
+
+        utterance.onerror = () => {
+          setIsPlaying(false);
+          setProgress(0);
+          if (timerRef.current) clearInterval(timerRef.current);
+        };
+
+        utteranceRef.current = utterance;
+        window.speechSynthesis.speak(utterance);
+      }
     }
-    setIsPlaying(!isPlaying);
   };
 
   const formatDuration = (seconds: number) => {
@@ -84,7 +140,7 @@ export default function VoicePlayer({ audioUri }: VoicePlayerProps) {
       <span className="text-xs text-gray-500 flex-shrink-0">
         {formatDuration(duration)}
       </span>
-      <audio ref={audioRef} src={audioUri} />
+      {audioUri && <audio ref={audioRef} src={audioUri} />}
     </div>
   );
 }

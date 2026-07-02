@@ -10,14 +10,15 @@ interface ImageRequest {
 
 export async function POST(request: NextRequest) {
   try {
-    const { prompt, uid, characterId }: ImageRequest = await request.json();
+    const { prompt, uid, characterId } = await request.json();
 
     let enhancedPrompt = prompt;
-    if (characterId && characters[characterId]) {
-      enhancedPrompt = `${characters[characterId].appearance}。${prompt}`;
+    
+    if (characterId && typeof characterId === 'string' && characters[characterId as CharacterId]) {
+      enhancedPrompt = `${characters[characterId as CharacterId].appearance}。${prompt}`;
     }
 
-    enhancedPrompt = `${enhancedPrompt}。画风要求：动漫风格，高质量，精细。不要出现文字。`;
+    enhancedPrompt = `male character, ${enhancedPrompt}。anime style, high quality, detailed, full body or portrait, 8k resolution。不要出现文字。`;
 
     const pollinationsBase = process.env.NEXT_PUBLIC_POLLINATIONS_BASE || 'https://image.pollinations.ai';
     const encodedPrompt = encodeURIComponent(enhancedPrompt);

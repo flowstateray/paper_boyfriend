@@ -113,14 +113,16 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           .then(async ttsRes => {
             if (!ttsRes.ok) throw new Error('TTS request failed');
             const { audioUri } = await ttsRes.json();
-            setChatState(prev => ({
-              ...prev,
-              messages: prev.messages.map(msg =>
-                msg.id === characterTextMessage.id
-                  ? { ...msg, audioUri }
-                  : msg
-              ),
-            }));
+            if (audioUri) {
+              setChatState(prev => ({
+                ...prev,
+                messages: prev.messages.map(msg =>
+                  msg.id === characterTextMessage.id
+                    ? { ...msg, audioUri }
+                    : msg
+                ),
+              }));
+            }
           })
           .catch(() => {});
       }

@@ -68,11 +68,9 @@ export default function MessageBubble({ message, characterAvatar }: MessageBubbl
         <div className="bg-white rounded-2xl rounded-bl-none px-4 py-2 shadow-sm max-w-[70%]">
           <p className="text-sm text-gray-800 leading-relaxed whitespace-pre-wrap">{message.content}</p>
         </div>
-        {message.audioUri && (
-          <div className="bg-white rounded-2xl rounded-bl-none px-4 py-2 shadow-sm">
-            <VoicePlayer audioUri={message.audioUri} />
-          </div>
-        )}
+        <div className="bg-white rounded-2xl rounded-bl-none px-4 py-2 shadow-sm">
+          <VoicePlayer audioUri={message.audioUri} text={message.content} />
+        </div>
       </div>
     </div>
   );
