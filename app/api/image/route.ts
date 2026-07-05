@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       console.error(`[R2] Upload failed, using temporary URL:`, (r2Error as Error).message);
     }
 
-    return NextResponse.json({ imageUrl: permanentUrl || tempImageUrl });
+    return NextResponse.json({ imageUri: permanentUrl || tempImageUrl });
   } catch (error) {
     console.error(`[Image API] Error:`, (error as Error).message);
     return NextResponse.json({ imageUrl: '' });
