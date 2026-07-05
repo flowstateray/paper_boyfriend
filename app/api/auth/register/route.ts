@@ -5,33 +5,12 @@ import { sendWelcomeEmail } from '@/lib/email';
 
 export async function POST(request: Request) {
   try {
-    const { turnstileToken, email, nickname, password } = await request.json();
+    const { email, nickname, password } = await request.json();
 
     if (!email || !nickname || !password) {
       return NextResponse.json(
         { message: '所有字段都是必填的' },
         { status: 400 }
-      );
-    }
-
-    const verifyResponse = await fetch(
-      'https://challenges.cloudflare.com/turnstile/v0/siteverify',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          secret: process.env.TURNSTILE_SECRET_KEY,
-          response: turnstileToken,
-        }),
-      }
-    );
-
-    const verifyResult = await verifyResponse.json();
-
-    if (!verifyResult.success) {
-      return NextResponse.json(
-        { message: '人机验证失败，请重试' },
-        { status: 403 }
       );
     }
 
@@ -56,6 +35,7 @@ export async function POST(request: Request) {
       },
     });
 
+    console.log('[Email] Calling sendWelcomeEmail for:', email);
     sendWelcomeEmail(email, nickname).catch((err) => {
       console.error('[Email] Failed to send welcome email:', err);
     });
