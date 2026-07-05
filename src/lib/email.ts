@@ -33,7 +33,7 @@ export async function sendWelcomeEmail(
     });
 
     if (result.error) {
-      console.error('[Email] Resend error:', result.error.message, result.error.code);
+      console.error('[Email] Resend error:', result.error.message);
       return;
     }
 
