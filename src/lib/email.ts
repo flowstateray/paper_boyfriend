@@ -14,7 +14,7 @@ export async function sendWelcomeEmail(
   try {
     const result = await resend.emails.send({
       from: '纸片人男友 <onboarding@resend.dev>',
-      to: 'flowgithub@proton.me',
+      to: 'delivered@resend.dev',
       subject: '你好呀，我是你的专属男友 💌',
       html: `
         <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 500px; margin: 0 auto; padding: 20px;">
