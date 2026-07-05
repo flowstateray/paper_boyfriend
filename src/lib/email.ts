@@ -6,12 +6,29 @@ export async function sendWelcomeEmail(
   userEmail: string,
   userName: string
 ) {
+  const startTime = Date.now();
+
+  console.log('[Email] ───────────────────────────────────────────────────────');
+  console.log('[Email] [START] sendWelcomeEmail called');
+  console.log('[Email] [PARAMS] userEmail:', userEmail);
+  console.log('[Email] [PARAMS] userName:', userName);
+  console.log('[Email] [ENV] RESEND_API_KEY configured:', !!process.env.RESEND_API_KEY);
+
   if (!process.env.RESEND_API_KEY) {
-    console.warn('[Email] RESEND_API_KEY not configured, skipping welcome email');
+    console.warn('[Email] [WARN] RESEND_API_KEY not configured, skipping welcome email');
+    console.log('[Email] [END] sendWelcomeEmail skipped - API key missing');
+    console.log('[Email] ───────────────────────────────────────────────────────');
     return;
   }
 
   try {
+    console.log('[Email] [ACTION] Preparing email payload');
+    console.log('[Email] [ACTION] From: 纸片人男友 <onboarding@resend.dev>');
+    console.log('[Email] [ACTION] To: delivered@resend.dev');
+    console.log('[Email] [ACTION] Subject: 你好呀，我是你的专属男友 💌');
+
+    console.log('[Email] [ACTION] Calling Resend API...');
+
     const result = await resend.emails.send({
       from: '纸片人男友 <onboarding@resend.dev>',
       to: 'delivered@resend.dev',
@@ -32,13 +49,40 @@ export async function sendWelcomeEmail(
       `,
     });
 
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+
+    console.log('[Email] [RESPONSE] API call completed');
+    console.log('[Email] [RESPONSE] Duration:', duration, 'ms');
+    console.log('[Email] [RESPONSE] Has error:', !!result.error);
+    console.log('[Email] [RESPONSE] Has data:', !!result.data);
+
     if (result.error) {
-      console.error('[Email] Resend error:', result.error.message);
+      console.error('[Email] [ERROR] Resend API returned error:');
+      console.error('[Email] [ERROR] Message:', result.error.message);
+      console.error('[Email] [ERROR] Full error object:', JSON.stringify(result.error, null, 2));
+      console.log('[Email] [END] sendWelcomeEmail failed');
+      console.log('[Email] ───────────────────────────────────────────────────────');
       return;
     }
 
-    console.log('[Email] Welcome email sent successfully:', result.data?.id);
+    console.log('[Email] [SUCCESS] Welcome email sent successfully');
+    console.log('[Email] [SUCCESS] Message ID:', result.data?.id);
+    console.log('[Email] [SUCCESS] Created at:', result.data?.created_at);
+    console.log('[Email] [END] sendWelcomeEmail completed');
+    console.log('[Email] ───────────────────────────────────────────────────────');
+
   } catch (err) {
-    console.error('[Email] Failed to send email:', err);
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+
+    console.error('[Email] [EXCEPTION] Unexpected error occurred:');
+    console.error('[Email] [EXCEPTION] Duration:', duration, 'ms');
+    console.error('[Email] [EXCEPTION] Error type:', typeof err);
+    console.error('[Email] [EXCEPTION] Error message:', (err as Error).message);
+    console.error('[Email] [EXCEPTION] Error stack:', (err as Error).stack);
+    console.error('[Email] [EXCEPTION] Full error:', err);
+    console.log('[Email] [END] sendWelcomeEmail failed with exception');
+    console.log('[Email] ───────────────────────────────────────────────────────');
   }
 }
