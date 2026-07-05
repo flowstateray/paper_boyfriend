@@ -1,18 +1,53 @@
 'use client';
 
-import React, { createContext, useContext, useState, useRef, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useRef, useCallback, ReactNode, useEffect } from 'react';
 import { Character, Message, ChatState } from '../types/chat';
 import { parseReply } from '../utils/parseReply';
 import { cleanTextForSpeech } from '../utils/cleanText';
 
+interface User {
+  id: string;
+  email: string;
+  nickname: string;
+  avatar?: string;
+}
+
 interface ChatContextType {
   chatState: ChatState;
+  user: User | null;
   selectCharacter: (character: Character) => void;
-  sendMessage: (content: string) => void;
+  sendMessage: (content: string, turnstileToken?: string | null) => void;
   resetChat: () => void;
+  login: (userData: User) => void;
+  logout: () => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
+
+const getUserId = (): string => {
+  if (typeof window === 'undefined') {
+    return `user-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+  }
+  const userStr = localStorage.getItem('user');
+  if (userStr) {
+    const user = JSON.parse(userStr);
+    return user.id;
+  }
+  let userId = localStorage.getItem('paper_boyfriend_user_id');
+  if (!userId) {
+    userId = `user-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+    localStorage.setItem('paper_boyfriend_user_id', userId);
+  }
+  return userId;
+};
+
+const getUser = (): User | null => {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  const userStr = localStorage.getItem('user');
+  return userStr ? JSON.parse(userStr) : null;
+};
 
 export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [chatState, setChatState] = useState<ChatState>({
@@ -21,17 +56,71 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     isTyping: false,
     isGeneratingImage: false,
   });
+  const [user, setUser] = useState<User | null>(getUser());
 
   const isGeneratingRef = useRef(false);
 
-  const selectCharacter = useCallback((character: Character) => {
+  const login = useCallback((userData: User) => {
+    setUser(userData);
+    localStorage.setItem('user', JSON.stringify(userData));
+  }, []);
+
+  const logout = useCallback(() => {
+    setUser(null);
+    localStorage.removeItem('user');
+  }, []);
+
+  const loadHistoryMessages = useCallback(async (characterId: string) => {
+    try {
+      const userId = getUserId();
+      const response = await fetch('/api/chat/load', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, characterId }),
+        signal: AbortSignal.timeout(10000),
+      });
+      if (response.ok) {
+        const { messages } = await response.json();
+        if (messages && messages.length > 0) {
+          setChatState(prev => ({
+            ...prev,
+            messages: messages as Message[],
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load history:', error);
+    }
+  }, []);
+
+  const saveMessages = useCallback(async (messages: Message[], character: Character) => {
+    try {
+      const userId = getUserId();
+      await fetch('/api/chat/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId,
+          characterId: character.id,
+          characterName: character.name,
+          messages,
+        }),
+        signal: AbortSignal.timeout(10000),
+      });
+    } catch (error) {
+      console.error('Failed to save messages:', error);
+    }
+  }, []);
+
+  const selectCharacter = useCallback(async (character: Character) => {
     setChatState({
       character,
       messages: [],
       isTyping: false,
       isGeneratingImage: false,
     });
-  }, []);
+    await loadHistoryMessages(character.id);
+  }, [loadHistoryMessages]);
 
   const resetChat = useCallback(() => {
     setChatState({
@@ -42,7 +131,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     });
   }, []);
 
-  const sendMessage = useCallback(async (content: string) => {
+  const sendMessage = useCallback(async (content: string, turnstileToken?: string | null) => {
     if (isGeneratingRef.current || !chatState.character) return;
     isGeneratingRef.current = true;
 
@@ -74,6 +163,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           characterId: chatState.character.id,
           systemPrompt: chatState.character.systemPrompt,
           messages: [...chatHistory, { role: 'user', content }],
+          turnstileToken,
         }),
         signal: AbortSignal.timeout(30000),
       });
@@ -182,8 +272,14 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   }, [chatState.character, chatState.messages]);
 
+  useEffect(() => {
+    if (chatState.messages.length > 0 && chatState.character) {
+      saveMessages(chatState.messages, chatState.character);
+    }
+  }, [chatState.messages, chatState.character, saveMessages]);
+
   return (
-    <ChatContext.Provider value={{ chatState, selectCharacter, sendMessage, resetChat }}>
+    <ChatContext.Provider value={{ chatState, user, selectCharacter, sendMessage, resetChat, login, logout }}>
       {children}
     </ChatContext.Provider>
   );

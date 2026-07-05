@@ -1,0 +1,48 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password      String
+  nickname      String
+  avatar        String?
+  sessions      Session[]
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([email])
+}
+
+model Session {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  characterId  String
+  characterName String
+  messages     Message[] @relation("SessionMessages")
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([userId, characterId])
+}
+
+model Message {
+  id         String    @id @default(cuid())
+  sessionId  String
+  session    Session   @relation("SessionMessages", fields: [sessionId], references: [id], onDelete: Cascade)
+  role       String    @db.VarChar(20)
+  type       String    @db.VarChar(20)
+  content    String
+  imageUri   String?
+  audioUri   String?
+  timestamp  DateTime  @default(now())
+
+  @@index([sessionId])
+}

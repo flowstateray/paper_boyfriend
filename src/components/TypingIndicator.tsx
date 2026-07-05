@@ -13,15 +13,15 @@ export default function TypingIndicator() {
       <img
         src={character.avatar}
         alt={character.name}
-        className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+        className="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-gray-700"
       />
-      <div className="bg-white rounded-2xl rounded-bl-none px-4 py-3 shadow-sm">
+      <div className="aurora-border bg-gray-900/80 rounded-2xl rounded-bl-none px-4 py-3">
         <div className="flex gap-1">
-          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-          <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+          <span className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+          <span className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+          <span className="w-2 h-2 bg-cyan-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
         </div>
-        <p className="text-xs text-gray-500 mt-2">{character.name}正在输入...</p>
+        <p className="text-xs text-gray-400 mt-2">{character.name}正在输入...</p>
       </div>
     </div>
   );

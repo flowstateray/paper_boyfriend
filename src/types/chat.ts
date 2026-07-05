@@ -4,6 +4,7 @@ export interface Character {
   id: CharacterId;
   name: string;
   tagline: string;
+  taglineEn: string;
   tags: string[];
   avatar: string;
   speaker: string;

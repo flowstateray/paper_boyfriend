@@ -99,6 +99,12 @@ export default function VoicePlayer({ audioUri, text, speaker }: VoicePlayerProp
       return;
     }
 
+    if (audioUri && audioRef.current) {
+      audioRef.current.play();
+      setIsPlaying(true);
+      return;
+    }
+
     const targetVoiceName = speaker ? SPEAKER_VOICE_MAP[speaker] : 'zh-CN-YunxiNeural';
 
     if ('speechSynthesis' in window && text) {
@@ -142,12 +148,6 @@ export default function VoicePlayer({ audioUri, text, speaker }: VoicePlayerProp
 
       utteranceRef.current = utterance;
       window.speechSynthesis.speak(utterance);
-    } else if (audioUri) {
-      const audio = audioRef.current;
-      if (audio) {
-        audio.play();
-        setIsPlaying(true);
-      }
     }
   };
 
@@ -162,7 +162,7 @@ export default function VoicePlayer({ audioUri, text, speaker }: VoicePlayerProp
     <div className="flex items-center gap-3 min-w-[120px]">
       <button
         onClick={togglePlay}
-        className="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center flex-shrink-0 transition-transform hover:scale-105 active:scale-95"
+        className="w-8 h-8 aurora-border rounded-full bg-gray-800/80 flex items-center justify-center flex-shrink-0 transition-all hover:scale-105 active:scale-95"
       >
         {isPlaying ? (
           <Pause className="w-4 h-4 text-white" />
@@ -171,9 +171,9 @@ export default function VoicePlayer({ audioUri, text, speaker }: VoicePlayerProp
         )}
       </button>
       <div className="flex-1">
-        <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+        <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
           <div
-            className="h-full bg-green-500 transition-all duration-100"
+            className="h-full bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 transition-all duration-100"
             style={{ width: `${progress}%` }}
           />
         </div>

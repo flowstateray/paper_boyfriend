@@ -10,6 +10,7 @@ interface ChatRequest {
 export async function POST(request: NextRequest) {
   try {
     const { systemPrompt, messages }: ChatRequest = await request.json();
+
     const apiKey = process.env.NEXT_PUBLIC_GLM_API_KEY;
     const apiBase = process.env.NEXT_PUBLIC_GLM_API_BASE || 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
 

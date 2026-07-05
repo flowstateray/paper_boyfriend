@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ChatProvider } from "@/context/ChatContext";
+import AuroraBackground from "@/components/AuroraBackground";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,7 +15,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="zh-CN">
-      <body>
+      <body className="bg-black">
+        <AuroraBackground />
         <ChatProvider>{children}</ChatProvider>
       </body>
     </html>
