@@ -8,9 +8,16 @@ if (!r2Endpoint || !r2BucketName || !r2PublicUrl) {
   console.error('[R2] Missing environment variables');
 }
 
+const getEndpointUrl = () => {
+  if (r2Endpoint?.startsWith('http://') || r2Endpoint?.startsWith('https://')) {
+    return r2Endpoint;
+  }
+  return `https://${r2Endpoint}.r2.cloudflarestorage.com`;
+};
+
 const s3Client = new S3Client({
   region: 'auto',
-  endpoint: `https://${r2Endpoint}.r2.cloudflarestorage.com`,
+  endpoint: getEndpointUrl(),
   credentials: {
     accessKeyId: process.env.R2_ACCESS_KEY_ID!,
     secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
