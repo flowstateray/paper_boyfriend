@@ -51,6 +51,8 @@ export async function POST(request: NextRequest) {
           type: m.type,
           content: m.content,
           imageUri: m.imageUri || undefined,
+          imagePrompt: m.imagePrompt || undefined,
+          imageSource: m.imageSource || undefined,
           audioUri: m.audioUri || undefined,
           timestamp: new Date(m.timestamp),
         })),

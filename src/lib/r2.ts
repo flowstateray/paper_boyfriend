@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, S3ServiceException } from '@aws-sdk/client-s3';
+import { S3Client, PutObjectCommand, S3ServiceException, ListObjectsV2Command } from '@aws-sdk/client-s3';
 
 const r2Endpoint = process.env.R2_ENDPOINT;
 const r2BucketName = process.env.R2_BUCKET_NAME;
@@ -17,6 +17,44 @@ const s3Client = new S3Client({
   },
   forcePathStyle: true,
 });
+
+export async function checkR2Health() {
+  const status = {
+    configured: !!(r2Endpoint && r2BucketName && r2PublicUrl && process.env.R2_ACCESS_KEY_ID && process.env.R2_SECRET_ACCESS_KEY),
+    connection: 'unknown' as 'unknown' | 'connected' | 'failed',
+    error: null as string | null,
+    objectCount: 0,
+    sampleObjects: [] as Array<{ key: string; url: string }>,
+  };
+
+  if (!status.configured) {
+    return status;
+  }
+
+  try {
+    const response = await s3Client.send(
+      new ListObjectsV2Command({
+        Bucket: r2BucketName,
+        MaxKeys: 5,
+      })
+    );
+
+    status.connection = 'connected';
+    status.objectCount = response.KeyCount || 0;
+
+    if (response.Contents && response.Contents.length > 0) {
+      status.sampleObjects = response.Contents.map(item => ({
+        key: item.Key || '',
+        url: r2PublicUrl ? `${r2PublicUrl}/${item.Key}` : '',
+      }));
+    }
+  } catch (error) {
+    status.connection = 'failed';
+    status.error = (error as Error).message;
+  }
+
+  return status;
+}
 
 export async function uploadToR2(
   fileBuffer: Buffer,

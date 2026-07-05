@@ -144,17 +144,22 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         timestamp: Date.now(),
       };
 
-      setChatState(prev => ({
-        ...prev,
-        messages: [...prev.messages, userMessage],
-        isTyping: true,
-      }));
+      let chatHistory: Array<{ role: 'user' | 'assistant'; content: string }> = [];
 
-      const recentMessages = chatState.messages.slice(-20);
-      const chatHistory = recentMessages.map(msg => ({
-        role: msg.role === 'character' ? 'assistant' as const : 'user' as const,
-        content: msg.content,
-      }));
+      setChatState(prev => {
+        const newMessages = [...prev.messages, userMessage];
+        const recentMessages = newMessages.slice(-20);
+        chatHistory = recentMessages.map(msg => ({
+          role: msg.role === 'character' ? 'assistant' as const : 'user' as const,
+          content: msg.content,
+        }));
+
+        return {
+          ...prev,
+          messages: newMessages,
+          isTyping: true,
+        };
+      });
 
       const llmResponse = await fetch('/api/chat', {
         method: 'POST',
@@ -281,13 +286,13 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } finally {
       isGeneratingRef.current = false;
     }
-  }, [chatState.character, chatState.messages]);
+  }, [chatState.character]);
 
   useEffect(() => {
     if (chatState.messages.length > 0 && chatState.character) {
       saveMessages(chatState.messages, chatState.character);
     }
-  }, [chatState.messages, chatState.character, saveMessages]);
+  }, [chatState.messages.length, chatState.character]);
 
   return (
     <ChatContext.Provider value={{ chatState, user, selectCharacter, sendMessage, resetChat, login, logout }}>

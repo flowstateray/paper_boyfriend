@@ -33,6 +33,8 @@ export async function POST(request: NextRequest) {
       type: m.type as 'text' | 'image',
       content: m.content,
       imageUri: m.imageUri || undefined,
+      imagePrompt: m.imagePrompt || undefined,
+      imageSource: m.imageSource || undefined,
       audioUri: m.audioUri || undefined,
       timestamp: m.timestamp.getTime(),
     }));

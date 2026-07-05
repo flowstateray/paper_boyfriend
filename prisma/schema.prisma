@@ -41,6 +41,8 @@ model Message {
   type       String    @db.VarChar(20)
   content    String
   imageUri   String?
+  imagePrompt String?
+  imageSource String?   @db.VarChar(20)
   audioUri   String?
   timestamp  DateTime  @default(now())
 
