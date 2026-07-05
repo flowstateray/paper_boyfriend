@@ -29,23 +29,34 @@ export async function POST(request: NextRequest) {
 
     const imageResponse = await fetch(tempImageUrl);
     if (!imageResponse.ok) {
-      return NextResponse.json({ imageUrl: '' });
+      return NextResponse.json({ imageUri: '', error: 'Image generation failed' });
     }
 
     const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
     const fileName = `images/${nanoid()}.png`;
     
     let permanentUrl: string | null = null;
+    let r2Status: 'success' | 'failed' | 'skipped' = 'skipped';
+    let r2Error: string | null = null;
+    
     try {
       permanentUrl = await uploadToR2(imageBuffer, fileName, 'image/png');
-      console.log(`[R2] Upload successful: ${permanentUrl}`);
-    } catch (r2Error) {
-      console.error(`[R2] Upload failed, using temporary URL:`, (r2Error as Error).message);
+      r2Status = 'success';
+    } catch (r2ErrorObj) {
+      r2Status = 'failed';
+      r2Error = (r2ErrorObj as Error).message;
     }
 
-    return NextResponse.json({ imageUri: permanentUrl || tempImageUrl });
+    console.log(`[Image API] R2 Status: ${r2Status}, URL: ${permanentUrl || tempImageUrl}, Error: ${r2Error || 'none'}`);
+    
+    return NextResponse.json({ 
+      imageUri: permanentUrl || tempImageUrl,
+      r2Status,
+      r2Error,
+      isR2: !!permanentUrl 
+    });
   } catch (error) {
     console.error(`[Image API] Error:`, (error as Error).message);
-    return NextResponse.json({ imageUrl: '' });
+    return NextResponse.json({ imageUri: '', error: (error as Error).message });
   }
 }

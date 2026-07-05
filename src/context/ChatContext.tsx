@@ -230,7 +230,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         })
           .then(async imgRes => {
             if (!imgRes.ok) throw new Error('Image generation failed');
-            const { imageUri } = await imgRes.json();
+            const response = await imgRes.json();
+            const { imageUri, r2Status, r2Error, isR2 } = response;
+            
+            console.log(`[Image] R2 Status: ${r2Status}, isR2: ${isR2}, Error: ${r2Error || 'none'}, URL: ${imageUri}`);
+            
             const imageMessage: Message = {
               id: `char-img-${Date.now()}`,
               role: 'character',
@@ -246,7 +250,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               isGeneratingImage: false,
             }));
           })
-          .catch(() => {
+          .catch((err) => {
+            console.error('[Image] Fetch failed:', err);
             setChatState(prev => ({
               ...prev,
               isGeneratingImage: false,
