@@ -68,7 +68,6 @@ export async function sendWelcomeEmail(
 
     console.log('[Email] [SUCCESS] Welcome email sent successfully');
     console.log('[Email] [SUCCESS] Message ID:', result.data?.id);
-    console.log('[Email] [SUCCESS] Created at:', result.data?.created_at);
     console.log('[Email] [END] sendWelcomeEmail completed');
     console.log('[Email] ───────────────────────────────────────────────────────');
 
