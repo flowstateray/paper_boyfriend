@@ -235,6 +235,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             
             console.log(`[Image] R2 Status: ${r2Status}, isR2: ${isR2}, Error: ${r2Error || 'none'}, URL: ${imageUri}`);
             
+            const r2StatusText = r2Status === 'success' ? '✅ R2上传成功' : r2Status === 'failed' ? `❌ R2上传失败: ${r2Error}` : '⏭️ R2未尝试';
+            console.log('[Image] Status:', r2StatusText);
+            
             const imageMessage: Message = {
               id: `char-img-${Date.now()}`,
               role: 'character',
