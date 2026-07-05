@@ -45,7 +45,7 @@ export default function MessageBubble({ message, characterAvatar, speaker }: Mes
                 className="w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={() => setShowImageViewer(true)}
               />
-              <div className="absolute bottom-2 right-2 px-3 py-1 bg-black/70 rounded-full text-xs text-white font-medium">
+              <div className="absolute bottom-2 right-2 px-3 py-1 bg-black/70 rounded-full text-xs text-white font-medium z-10">
                 {message.imageSource === 'r2' ? '✅ R2存储' : '❌ 临时链接'}
               </div>
             </div>
