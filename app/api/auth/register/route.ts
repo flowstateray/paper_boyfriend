@@ -5,12 +5,34 @@ import { sendWelcomeEmail } from '@/lib/email';
 
 export async function POST(request: Request) {
   try {
-    const { email, nickname, password } = await request.json();
+    const { turnstileToken, email, nickname, password } = await request.json();
 
     if (!email || !nickname || !password) {
       return NextResponse.json(
         { message: '所有字段都是必填的' },
         { status: 400 }
+      );
+    }
+
+    const verifyResponse = await fetch(
+      'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          secret: process.env.TURNSTILE_SECRET_KEY,
+          response: turnstileToken,
+        }),
+      }
+    );
+
+    const verifyResult = await verifyResponse.json();
+
+    if (!verifyResult.success) {
+      console.error('[Turnstile] Verification failed:', verifyResult);
+      return NextResponse.json(
+        { message: '人机验证失败，请重试' },
+        { status: 403 }
       );
     }
 
