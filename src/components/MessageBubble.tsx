@@ -38,12 +38,17 @@ export default function MessageBubble({ message, characterAvatar, speaker }: Mes
         />
         <div className="aurora-border bg-gray-900/80 rounded-2xl rounded-bl-none overflow-hidden max-w-[240px]">
           {message.imageUri ? (
-            <img
-              src={message.imageUri}
-              alt={message.content}
-              className="w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
-              onClick={() => setShowImageViewer(true)}
-            />
+            <div className="relative">
+              <img
+                src={message.imageUri}
+                alt={message.content}
+                className="w-full h-auto cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => setShowImageViewer(true)}
+              />
+              <div className="absolute bottom-1 right-1 px-2 py-0.5 bg-black/60 rounded text-[10px] text-white">
+                {message.imageSource === 'r2' ? '🗂️ R2存储' : '🔗 临时链接'}
+              </div>
+            </div>
           ) : (
             <div className="w-full h-48 bg-gray-800/50 flex flex-col items-center justify-center">
               <ImageIcon className="w-8 h-8 text-gray-500 mb-2" />

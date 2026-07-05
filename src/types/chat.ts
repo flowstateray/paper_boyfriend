@@ -22,6 +22,7 @@ export interface Message {
   audioUri?: string;
   imageUri?: string;
   imagePrompt?: string;
+  imageSource?: 'r2' | 'temporary';
   timestamp: number;
 }
 

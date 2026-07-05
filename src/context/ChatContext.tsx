@@ -245,6 +245,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               content: imagePrompt,
               imageUri,
               imagePrompt,
+              imageSource: isR2 ? 'r2' : 'temporary',
               timestamp: Date.now(),
             };
             setChatState(prev => ({
