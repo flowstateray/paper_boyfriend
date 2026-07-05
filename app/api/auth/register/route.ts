@@ -58,9 +58,12 @@ export async function POST(request: Request) {
     });
 
     console.log('[Email] Calling sendWelcomeEmail for:', email);
-    sendWelcomeEmail(email, nickname).catch((err) => {
+    try {
+      await sendWelcomeEmail(email, nickname);
+      console.log('[Email] Welcome email sent successfully');
+    } catch (err) {
       console.error('[Email] Failed to send welcome email:', err);
-    });
+    }
 
     return NextResponse.json({
       id: user.id,
