@@ -248,6 +248,8 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
               imageSource: isR2 ? 'r2' : 'temporary',
               timestamp: Date.now(),
             };
+            
+            console.log('[DEBUG] Image message created:', JSON.stringify({ imageUri, isR2, r2Status, r2Error }));
             setChatState(prev => ({
               ...prev,
               messages: [...prev.messages, imageMessage],

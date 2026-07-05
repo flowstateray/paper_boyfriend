@@ -53,7 +53,8 @@ export async function POST(request: NextRequest) {
       imageUri: permanentUrl || tempImageUrl,
       r2Status,
       r2Error,
-      isR2: !!permanentUrl 
+      isR2: !!permanentUrl,
+      statusText: permanentUrl ? 'R2_UPLOAD_SUCCESS' : 'R2_UPLOAD_FAILED_' + (r2Error?.substring(0, 50) || 'unknown')
     });
   } catch (error) {
     console.error(`[Image API] Error:`, (error as Error).message);
