@@ -3,8 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
-const CRON_TIMEOUT_MS = 5 * 60 * 1000;
-
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
 
@@ -56,20 +54,9 @@ export async function GET(request: NextRequest) {
   }
 
   console.log('[Cron] [INFO] Authorization verified');
-  console.log('[Cron] [ACTION] Starting daily love letter batch...');
+  console.log('[Cron] [ACTION] Starting daily love letter batch in background...');
 
-  const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => {
-      reject(new Error(`Cron job timed out after ${CRON_TIMEOUT_MS / 1000} seconds`));
-    }, CRON_TIMEOUT_MS);
-  });
-
-  try {
-    const result = await Promise.race([
-      sendDailyLoveLetterToAll(),
-      timeoutPromise,
-    ]);
-
+  sendDailyLoveLetterToAll().then(result => {
     const endTime = Date.now();
     const duration = endTime - startTime;
 
@@ -80,15 +67,7 @@ export async function GET(request: NextRequest) {
     console.log('[Cron] [SUCCESS] Duration:', duration, 'ms');
     console.log('[Cron] [END] Cron job finished successfully');
     console.log('[Cron] ═══════════════════════════════════════════════════');
-
-    return NextResponse.json({
-      ok: true,
-      message: '每日情话发送完成',
-      time: new Date().toISOString(),
-      duration: `${duration}ms`,
-      ...result,
-    });
-  } catch (error) {
+  }).catch(error => {
     const endTime = Date.now();
     const duration = endTime - startTime;
 
@@ -98,15 +77,12 @@ export async function GET(request: NextRequest) {
     console.error('[Cron] [FATAL] Stack:', (error as Error).stack);
     console.log('[Cron] [END] Cron job failed');
     console.log('[Cron] ═══════════════════════════════════════════════════');
+  });
 
-    return NextResponse.json(
-      {
-        error: '发送失败',
-        message: (error as Error).message,
-        time: new Date().toISOString(),
-        duration: `${duration}ms`,
-      },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json({
+    ok: true,
+    message: '每日情话发送任务已启动，将在后台处理',
+    time: new Date().toISOString(),
+    status: 'processing',
+  });
 }
