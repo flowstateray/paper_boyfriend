@@ -119,8 +119,8 @@ export async function sendWelcomeEmail(
     console.log('[Email] [ACTION] Calling Resend API...');
 
     const result = await resend.emails.send({
-      from: '纸片人男友 <onboarding@resend.dev>',
-      to: userEmail,
+      from: process.env.RESEND_FROM_EMAIL || '纸片人男友 <onboarding@resend.dev>',
+      to: process.env.RESEND_FROM_EMAIL ? userEmail : 'delivered@resend.dev',
       subject: '你好呀，我是你的专属男友 💌',
       react: React.createElement(WelcomeEmail, { userName }),
     });
@@ -196,7 +196,7 @@ export async function sendDailyLoveLetter(
 
     const result = await resend.emails.send({
       from: '纸片人男友 <onboarding@resend.dev>',
-      to: userEmail,
+      to: process.env.NODE_ENV === 'production' && process.env.RESEND_FROM_EMAIL ? userEmail : 'delivered@resend.dev',
       subject: `早安 ${userName}，今天也想你了`,
       react: React.createElement(DailyLoveLetterEmail, { userName, loveLetter }),
     });
