@@ -19,8 +19,8 @@ export default function RootLayout({
       <body className="bg-black min-h-screen flex flex-col">
         <AuroraBackground />
         <ChatProvider>{children}</ChatProvider>
-        <footer className="text-center py-6 text-white text-sm">
-          <p>💌 联系邮箱: <a href="mailto:flowgithub@proton.me" className="text-pink-400 hover:text-pink-300 transition-colors font-medium">flowgithub@proton.me</a></p>
+        <footer className="text-center py-8 text-white text-2xl">
+          <p>💌 联系邮箱: <a href="mailto:flowgithub@proton.me" className="text-pink-400 hover:text-pink-300 transition-colors font-bold">flowgithub@proton.me</a></p>
         </footer>
         <Script
           src="https://embed.tawk.to/6a4b98bafe1c9c1d48b57957/1jsrkp6ht"
