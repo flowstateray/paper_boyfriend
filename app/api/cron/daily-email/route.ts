@@ -11,10 +11,10 @@ export async function GET(request: NextRequest) {
   console.log('[Cron] [INFO] Request from:', request.headers.get('user-agent'));
 
   const authHeader = request.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
+  const cronSecret = process.env.CRON_SECRET?.trim();
 
   if (!cronSecret) {
-    console.error('[Cron] [ERROR] CRON_SECRET environment variable is not set');
+    console.error('[Cron] [ERROR] CRON_SECRET environment variable is not set or is empty');
     console.log('[Cron] [END] Aborted - missing CRON_SECRET');
     console.log('[Cron] ═══════════════════════════════════════════════════');
     return NextResponse.json(
@@ -26,6 +26,10 @@ export async function GET(request: NextRequest) {
   if (authHeader !== `Bearer ${cronSecret}`) {
     console.warn('[Cron] [WARN] Unauthorized access attempt');
     console.warn('[Cron] [WARN] Auth header provided:', authHeader ? 'yes' : 'no');
+    if (authHeader) {
+      console.warn('[Cron] [WARN] Auth header length:', authHeader.length);
+      console.warn('[Cron] [WARN] Expected length:', `Bearer ${cronSecret}`.length);
+    }
     console.log('[Cron] [END] Aborted - unauthorized');
     console.log('[Cron] ═══════════════════════════════════════════════════');
     return NextResponse.json(
