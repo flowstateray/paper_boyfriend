@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { ChatProvider } from "@/context/ChatContext";
 import AuroraBackground from "@/components/AuroraBackground";
 import "./globals.css";
@@ -18,6 +19,12 @@ export default function RootLayout({
       <body className="bg-black">
         <AuroraBackground />
         <ChatProvider>{children}</ChatProvider>
+        <Script
+          src="https://embed.tawk.to/6a4b98bafe1c9c1d48b57957/1jsrkp6ht"
+          async
+          charset="UTF-8"
+          crossOrigin="*"
+        />
       </body>
     </html>
   );
