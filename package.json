@@ -12,6 +12,7 @@
     "@aws-sdk/client-s3": "^3.1079.0",
     "@marsidev/react-turnstile": "^1.5.3",
     "@prisma/client": "6.19.3",
+    "@react-email/components": "^1.0.12",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
     "lucide-react": "^1.22.0",
@@ -19,6 +20,7 @@
     "next": "16.2.10",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "react-email": "^6.6.6",
     "react-turnstile": "^1.1.5",
     "resend": "^6.17.1",
     "ws": "^8.21.0"
