@@ -10,8 +10,14 @@ export async function GET(request: NextRequest) {
   console.log('[Cron] [START] Daily email cron job triggered');
   console.log('[Cron] [INFO] Request from:', request.headers.get('user-agent'));
 
-  const authHeader = request.headers.get('authorization');
+  const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
   const cronSecret = process.env.CRON_SECRET?.trim();
+
+  console.log('[Cron] [DEBUG] Auth header received:', authHeader);
+  console.log('[Cron] [DEBUG] CRON_SECRET configured:', cronSecret ? 'yes' : 'no');
+  if (cronSecret) {
+    console.log('[Cron] [DEBUG] Expected auth header:', `Bearer ${cronSecret}`);
+  }
 
   if (!cronSecret) {
     console.error('[Cron] [ERROR] CRON_SECRET environment variable is not set or is empty');
@@ -23,13 +29,22 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  if (authHeader !== `Bearer ${cronSecret}`) {
-    console.warn('[Cron] [WARN] Unauthorized access attempt');
-    console.warn('[Cron] [WARN] Auth header provided:', authHeader ? 'yes' : 'no');
-    if (authHeader) {
-      console.warn('[Cron] [WARN] Auth header length:', authHeader.length);
-      console.warn('[Cron] [WARN] Expected length:', `Bearer ${cronSecret}`.length);
-    }
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    console.warn('[Cron] [WARN] Unauthorized - no Bearer token provided');
+    console.log('[Cron] [END] Aborted - unauthorized');
+    console.log('[Cron] ═══════════════════════════════════════════════════');
+    return NextResponse.json(
+      { error: '未授权访问' },
+      { status: 401 }
+    );
+  }
+
+  const providedToken = authHeader.substring('Bearer '.length).trim();
+  if (providedToken !== cronSecret) {
+    console.warn('[Cron] [WARN] Unauthorized - token mismatch');
+    console.warn('[Cron] [WARN] Provided token:', providedToken);
+    console.warn('[Cron] [WARN] Provided token length:', providedToken.length);
+    console.warn('[Cron] [WARN] Expected token length:', cronSecret.length);
     console.log('[Cron] [END] Aborted - unauthorized');
     console.log('[Cron] ═══════════════════════════════════════════════════');
     return NextResponse.json(
