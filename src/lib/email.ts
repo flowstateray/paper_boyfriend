@@ -113,14 +113,14 @@ export async function sendWelcomeEmail(
   try {
     console.log('[Email] [ACTION] Preparing email payload');
     console.log('[Email] [ACTION] From: 纸片人男友 <onboarding@resend.dev>');
-    console.log('[Email] [ACTION] To: delivered@resend.dev');
+    console.log('[Email] [ACTION] To:', userEmail);
     console.log('[Email] [ACTION] Subject: 你好呀，我是你的专属男友 💌');
 
     console.log('[Email] [ACTION] Calling Resend API...');
 
     const result = await resend.emails.send({
       from: '纸片人男友 <onboarding@resend.dev>',
-      to: 'delivered@resend.dev',
+      to: userEmail,
       subject: '你好呀，我是你的专属男友 💌',
       react: React.createElement(WelcomeEmail, { userName }),
     });
@@ -196,7 +196,7 @@ export async function sendDailyLoveLetter(
 
     const result = await resend.emails.send({
       from: '纸片人男友 <onboarding@resend.dev>',
-      to: 'delivered@resend.dev',
+      to: userEmail,
       subject: `早安 ${userName}，今天也想你了`,
       react: React.createElement(DailyLoveLetterEmail, { userName, loveLetter }),
     });
