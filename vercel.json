@@ -4,6 +4,5 @@
       "path": "/api/cron/daily-email",
       "schedule": "0 0 * * *"
     }
-  ],
-  "productionBranch": "master"
+  ]
 }
