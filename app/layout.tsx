@@ -22,7 +22,7 @@ export default function RootLayout({
         <Script
           src="https://embed.tawk.to/6a4b98bafe1c9c1d48b57957/1jsrkp6ht"
           async
-          charset="UTF-8"
+          charSet="UTF-8"
           crossOrigin="anonymous"
         />
       </body>
