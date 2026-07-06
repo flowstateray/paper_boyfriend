@@ -3,6 +3,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
+const CRON_TIMEOUT_MS = 5 * 60 * 1000;
+
 export async function GET(request: NextRequest) {
   const startTime = Date.now();
 
@@ -56,8 +58,17 @@ export async function GET(request: NextRequest) {
   console.log('[Cron] [INFO] Authorization verified');
   console.log('[Cron] [ACTION] Starting daily love letter batch...');
 
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => {
+      reject(new Error(`Cron job timed out after ${CRON_TIMEOUT_MS / 1000} seconds`));
+    }, CRON_TIMEOUT_MS);
+  });
+
   try {
-    const result = await sendDailyLoveLetterToAll();
+    const result = await Promise.race([
+      sendDailyLoveLetterToAll(),
+      timeoutPromise,
+    ]);
 
     const endTime = Date.now();
     const duration = endTime - startTime;
