@@ -23,7 +23,7 @@ export default function RootLayout({
           src="https://embed.tawk.to/6a4b98bafe1c9c1d48b57957/1jsrkp6ht"
           async
           charset="UTF-8"
-          crossOrigin="*"
+          crossOrigin="anonymous"
         />
       </body>
     </html>
