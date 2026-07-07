@@ -474,4 +474,197 @@ vercel --prod
 
 ---
 
-*最后更新：2026年7月5日*
+## 11. 邮件发送与定时任务问题
+
+### 问题背景
+
+项目需要发送欢迎邮件和每日情话邮件，使用 Resend API 实现。
+
+### 遇到的问题
+
+#### 问题一：邮件发送目标邮箱硬编码
+
+- 原因：`sendWelcomeEmail` 和 `sendDailyLoveLetter` 函数中将目标邮箱硬编码为测试邮箱 `delivered@resend.dev`
+- 影响：用户注册后无法收到真实邮件
+- 解决：将 `to` 字段改为动态变量 `userEmail`，但保留测试环境下的回退逻辑
+
+#### 问题二：Resend 测试发件地址限制
+
+- 原因：Resend 的测试发件地址 `onboarding@resend.dev` 只能发送到测试邮箱
+- 影响：生产环境需要配置自定义域名和验证的发件地址
+- 解决：在 Resend 控制台添加并验证自定义域名，配置 `RESEND_FROM_EMAIL` 环境变量
+
+#### 问题三：Vercel Serverless Functions 提前终止
+
+- 原因：邮件发送函数未使用 `await`，导致 Vercel Serverless Functions 在邮件发送完成前返回响应并终止
+- 影响：邮件发送失败，日志显示发送请求已发出但未完成
+- 解决：在注册 API 中使用 `await sendWelcomeEmail()` 确保发送完成后再返回
+
+#### 问题四：CRON_SECRET 环境变量包含空格
+
+- 原因：环境变量配置时前后包含空格
+- 影响：Vercel Cron Jobs 验证失败，返回 401 Unauthorized
+- 解决：在代码中使用 `.trim()` 处理，同时在 Vercel 控制台重新配置变量确保无空格
+
+#### 问题五：定时任务执行超时
+
+- 原因：`sendDailyLoveLetterToAll` 同步执行，遍历所有用户发送邮件耗时过长
+- 影响：cron-job.org 测试运行超时
+- 解决：改为异步后台处理，立即返回响应，使用 `Promise.race` 添加超时控制
+
+### 经验教训
+
+- 邮件发送目标必须使用动态变量，不能硬编码测试邮箱
+- Resend 需要配置验证的自定义域名才能发送到真实邮箱
+- Vercel Serverless Functions 需要使用 `await` 确保异步操作完成
+- 环境变量不能包含前后空格，建议在代码中添加 `.trim()` 处理
+- 定时任务应立即返回响应，后台异步处理耗时操作
+
+---
+
+## 12. 部署平台冲突与配置问题
+
+### 问题背景
+
+项目最初配置了 GitHub Actions 和 Vercel 原生集成两种部署方式，导致冲突。
+
+### 遇到的问题
+
+#### 问题一：GitHub Actions 与 Vercel 原生集成冲突
+
+- 原因：同时配置了 `.github/workflows/deploy.yml` 和 Vercel GitHub 原生集成
+- 影响：部署流程混乱，GitHub Actions 因缺少 Secrets 配置失败
+- 解决：删除 GitHub Actions 工作流文件，仅保留 Vercel 原生集成
+
+#### 问题二：Vercel 部署缓存导致 404
+
+- 原因：Vercel 部署未完全完成或存在缓存
+- 影响：API 端点返回 404 Not Found
+- 解决：等待部署完成，或强制重新部署
+
+#### 问题三：环境变量未同步到 Vercel
+
+- 原因：本地 `.env.local` 配置正确，但 Vercel 环境变量未配置
+- 影响：部署后功能因缺少配置而失效
+- 解决：通过 Vercel CLI 或控制台手动配置所有环境变量
+
+### 经验教训
+
+- 选择单一部署方式，避免多种方式冲突
+- Vercel 原生集成是 Next.js 项目的最佳选择
+- 部署后应立即验证关键功能是否正常
+- 环境变量需要在 Vercel 控制台单独配置
+
+---
+
+## 13. 第三方脚本集成与 TypeScript 类型问题
+
+### 问题背景
+
+项目需要集成 Tawk.to 在线聊天气泡组件，遇到 TypeScript 类型错误。
+
+### 遇到的问题
+
+#### 问题一：crossOrigin 属性类型错误
+
+```
+Type error: Type '"*"' is not assignable to type 'CrossOrigin'
+```
+
+- 原因：React 的 `CrossOrigin` 类型不支持 `"*"` 值
+- 解决：修改为 `crossOrigin="anonymous"`
+
+#### 问题二：charset 属性不存在
+
+```
+Property 'charset' does not exist on type 'IntrinsicAttributes & ScriptProps'
+```
+
+- 原因：Next.js Script 组件使用 React 属性命名规范，应为 `charSet`
+- 解决：修改为 `charSet="UTF-8"`
+
+### 经验教训
+
+- Next.js Script 组件的属性名称遵循 React 驼峰命名规范
+- `charset` 应改为 `charSet`
+- `crossOrigin` 属性值需要符合 React 的 `CrossOrigin` 类型定义
+
+---
+
+## 14. 页面布局与样式问题
+
+### 问题背景
+
+页脚邮箱信息需要固定显示在页面底部。
+
+### 遇到的问题
+
+#### 问题一：页脚邮箱在页面底部不可见
+
+- 原因：页脚使用普通布局，页面内容较长时需要滚动到底部才能看到
+- 解决：使用 `fixed bottom-0 left-0 right-0` 将页脚固定在视口底部
+
+#### 问题二：页脚样式需要优化
+
+- 原因：初始样式不够醒目，字体大小偏小
+- 解决：增大字体到 `text-2xl`，添加半透明背景和毛玻璃效果
+
+### 经验教训
+
+- 固定定位元素需要添加适当的背景和边框，避免遮挡内容
+- 使用 `backdrop-blur-sm` 实现毛玻璃效果提升视觉体验
+- 字体大小需要根据实际显示效果调整
+
+---
+
+## 15. 项目相关网站清单
+
+### 开发工具
+
+| 网站 | 用途 | 状态 |
+|------|------|------|
+| [GitHub](https://github.com) | 代码托管 | ✅ 使用中 |
+| [Vercel](https://vercel.com) | 部署平台 | ✅ 使用中 |
+| [Neon](https://neon.tech) | PostgreSQL 数据库 | ✅ 使用中 |
+| [Cloudflare](https://dash.cloudflare.com) | R2 对象存储、Turnstile | ✅ 使用中 |
+| [Resend](https://resend.com) | 邮件发送服务 | ✅ 使用中 |
+| [Tawk.to](https://dashboard.tawk.to) | 在线客服聊天 | ✅ 使用中 |
+
+### API 服务
+
+| 网站 | 用途 | 状态 |
+|------|------|------|
+| [智谱 AI](https://open.bigmodel.cn) | GLM 大语言模型 API | ✅ 使用中 |
+| [Pollinations AI](https://pollinations.ai) | 图像生成 API | ✅ 使用中 |
+| [Edge TTS](https://speech.platform.bing.com) | 语音合成（WebSocket） | ✅ 使用中 |
+
+### 辅助工具
+
+| 网站 | 用途 | 状态 |
+|------|------|------|
+| [cron-job.org](https://cron-job.org) | 定时任务调度 | ✅ 使用中 |
+| [Lucide React](https://lucide.dev) | 图标库 | ✅ 使用中 |
+
+---
+
+## 更新总结
+
+### 新增核心教训
+
+1. **邮件发送必须 await**：Vercel Serverless Functions 会在响应返回后立即终止，异步操作需要 await
+2. **环境变量不能有空格**：CRON_SECRET 等敏感变量需要 `.trim()` 处理
+3. **部署方式选择单一**：GitHub Actions 和 Vercel 原生集成不能同时使用
+4. **React 属性命名规范**：Next.js Script 组件使用驼峰命名（`charSet` 而非 `charset`）
+5. **固定定位元素样式**：需要背景和边框避免遮挡内容
+
+### 预防措施
+
+1. 邮件发送函数必须使用 await 确保完成
+2. 环境变量读取时添加 `.trim()` 处理
+3. 删除所有不必要的部署配置文件
+4. 第三方脚本集成前检查 TypeScript 类型
+5. 固定定位元素添加适当的视觉效果
+
+---
+
+*最后更新：2026年7月7日*
